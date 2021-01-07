@@ -11,7 +11,6 @@
  * v01 : ParticleFilter::init() done
  * v02 : ParticleFilter::prediction() done + factorize Gaussian Noise 
  *       Distribution with applyGaussianNoise()
- * v03 : 
  */
 
 #include "particle_filter.h"
@@ -110,27 +109,7 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
    *   probably find it useful to implement this method and use it as a helper 
    *   during the updateWeights phase.
    */
-  // Note : LandmarkObs x,y in vehicle coordinates, not in  map coordinates
-  // For predicted : in maps coordinates
-  // for observations : in vehicle coordinates.
-  
-  NOT FINISHED !
-    // build distance vector : dist from (x_map,y_map) to each map_landmarks.
-    vector<double> distance;
-    // for each map landmark
-    for(int l=0; l < map_landmarks.landmark_list.size(); ++l){
-      double xl(map_landmarks.landmark_list[l].x_f), yl(map_landmarks.landmark_list[l].y_f);
-      distance.push_back(dist(x_map, y_map, xl, yl)); 
-    }
-    // so here we have vector distance storing distances between observation and each landmark_list[l]
-    // now need to pick the the minimum distance, retrieve the index of the landmark
-    // add this index to observation[i].id...
-    observations[i] = min_index(distance);
 
-}
-
-int min_index(std::vector<double> a){
-	return(std::min_element(a.begin(),a.end()) - a.begin());
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
@@ -149,43 +128,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */
-  // transform to map x coordinate of observations
-  
-    
-  for(int i=0; i<observations.size(); ++i){
-  	// use homogeneous equations, using x/y from the particule
-    // x,y coordinates of the particule + theta heading of the particule
-    // How to calculate theta ???? This is the theta from the particule ...
-    double x_obs(observations[i].x), y_obs(observations[i].y);    
-    // transform to map x coordinate
-    double x_map = x + (cos(theta) * x_obs) - (sin(theta) * y_obs);
-    // transform to map y coordinate
-    double y_map = y + (sin(theta) * x_obs) + (cos(theta) * y_obs);
-    // update back observations[i] x and y if used after ?
-    // observations[i].x = x_map;
-    // observations[i].y = y_map;
-    
-    // now we have the x_map,y_map of the observation, we can look for 
-    // nearest landmark of this observation (x_map,y_map) and chose
-    // the nearest landmark
-  
-  	WOULD NEED THE OBSERVATIONS IN MAP COORDINATES AS WELL HERE !!!!
-  	// but in fact I should better use ParticleFilter::dataAssociation() to do this job ...
-    // ParticleFilter::dataAssociation(vector<LandmarkObs> predicted, 
-    //                                 vector<LandmarkObs>& observations)
-    dataAssociation(const Map &map_landmarks, 
-                                   ONLY 1 OBSERVATION ...)
 
-  }
-  
-    
-  // From here we associated a nearest landmark to each observations 
-  
-  
-  
-  // Need now to calculate particle weight ...
-  
-  
 }
 
 void ParticleFilter::resample() {
