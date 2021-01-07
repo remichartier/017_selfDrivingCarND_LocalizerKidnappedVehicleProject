@@ -9,6 +9,8 @@
  * History
  * v00 : initial file
  * v01 : ParticleFilter::init() done
+ * v02 : ParticleFilter::prediction() done + factorize Gaussian Noise 
+ *       Distribution with applyGaussianNoise()
  */
 
 #include "particle_filter.h"
@@ -26,7 +28,7 @@
 
 using std::string;
 using std::vector;
-using std::normal_distribution; // to create a normal (Gaussian) distributions for x,y,theta
+
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
   /**
@@ -39,23 +41,29 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
    */
   num_particles = 100;  // TODO: Set the number of particles
   
+  /*
   std::default_random_engine gen; // random engine to create a normal (Gaussian) distributions for x,y,theta
   // This line creates a normal (Gaussian) distribution for x
-  normal_distribution<double> dist_x(x, std[0]);
+  //normal_distribution<double> dist_x(x, std[0]);
   // This line creates a normal (Gaussian) distribution for y
-  normal_distribution<double> dist_y(y, std[2]);
+  normal_distribution<double> dist_y(y, std[1]);
   // This line creates a normal (Gaussian) distribution for theta
   normal_distribution<double> dist_theta(theta, std[2]);
-  
+  */
   for (int i = 0; i < num_particles; ++i) {
     struct Particle p;
     p.id = i;    
     // Sample from these normal distributions like this: 
     //   sample_x = dist_x(gen);
     //   where "gen" is the random engine initialized earlier.
-    p.x = dist_x(gen);
-    p.y = dist_y(gen);
-    p.theta = dist_theta(gen);
+    // p.x = dist_x(gen);
+    // p.y = dist_y(gen);
+    // p.theta = dist_theta(gen);
+    p.x = x;
+    p.y = y;
+    p.theta = theta;
+    applyGaussianNoise(p.x, p.y, p.theta, std);
+    p.weight = 1;
     particles.push_back(p);
   }
   
@@ -72,7 +80,23 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
    *  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
    *  http://www.cplusplus.com/reference/random/default_random_engine/
    */
-
+  
+  // std_pos[] : velocity and yaw rate measurement velocities.
+  if(yaw_rate == 0) {
+    std::cout << "ParticleFilter::prediction() ERROR : yaw_rate=0 --> dividing by 0" << std::endl;
+    return;
+  }
+  // calculate new particle positions
+  for (int i = 0; i < num_particles; ++i) {
+    double d = yaw_rate * delta_t;
+    double a = velocity/yaw_rate;
+    double b = particles[i].theta + d;
+    particles[i].x += a * (sin(b) - sin(particles[i].theta));
+    particles[i].y += a * (cos(particles[i].theta) - cos(b));
+    particles[i].theta += b;
+    // Apply Gaussian Noise Normal Distribution to those new predicted positions.
+    applyGaussianNoise(particles[i].x, particles[i].y, particles[i].theta, std_pos);
+  }
 }
 
 void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted, 

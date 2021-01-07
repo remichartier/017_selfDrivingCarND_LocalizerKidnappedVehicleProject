@@ -6,12 +6,6 @@
  * Author: Tiffany Huang
  */
 
-/**
- * History
- * v00 : initial version from Udacity
- * v01 : add includes + applyGaussianNoise
- */
-
 #ifndef HELPER_FUNCTIONS_H_
 #define HELPER_FUNCTIONS_H_
 
@@ -21,10 +15,6 @@
 #include <string>
 #include <vector>
 #include "map.h"
-
-// needed for applyGaussianNoise()
-#include <random>
-using std::normal_distribution; // to create a normal (Gaussian) distributions for x,y,theta
 
 
 // for portability of M_PI (Vis Studio, MinGW, etc.)
@@ -259,29 +249,4 @@ inline bool read_landmark_data(std::string filename,
   return true;
 }
 
-/**
-   * Apply Gaussian Noise Normal Distribution to particle x,y,theta components
-   * @param std[] Array of dimension 3 [standard deviation of x [m], 
-   *   standard deviation of y [m], standard deviation of yaw [rad]]
-   */
-inline void applyGaussianNoise(double& x, double& y, double& theta, double std[]) {
-  /**
-   * add normal Gaussiand Noise distribution to particles 
-   * x,y,theta components
-   */
-  std::default_random_engine gen; // random engine to create a normal (Gaussian) distributions for x,y,theta
-  // This line creates a normal (Gaussian) distribution for x
-  normal_distribution<double> dist_x(x, std[0]);
-  // This line creates a normal (Gaussian) distribution for y
-  normal_distribution<double> dist_y(y, std[1]);
-  // This line creates a normal (Gaussian) distribution for theta
-  normal_distribution<double> dist_theta(theta, std[2]);
-  
-  // Sample from these normal distributions like this: 
-    //   sample_x = dist_x(gen);
-    //   where "gen" is the random engine initialized earlier.
-  x = dist_x(gen);
-  y = dist_y(gen);
-  theta = dist_theta(gen);
-}
 #endif  // HELPER_FUNCTIONS_H_
