@@ -27,6 +27,7 @@
 #include <random>
 using std::normal_distribution; // to create a normal (Gaussian) distributions for x,y,theta
 
+#include<algorithm> 	// for min_element()
 
 // for portability of M_PI (Vis Studio, MinGW, etc.)
 #ifndef M_PI
@@ -286,7 +287,7 @@ inline void applyGaussianNoise(double& x, double& y, double& theta, double std[]
   theta = dist_theta(gen);
 }
 
-int min_index(std::vector<double> a){
+inline int min_index(std::vector<double> a){
   /**
    * return vector index of minimum value in the vector
   */
