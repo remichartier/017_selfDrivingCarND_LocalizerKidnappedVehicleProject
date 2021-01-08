@@ -133,6 +133,23 @@ int min_index(std::vector<double> a){
 	return(std::min_element(a.begin(),a.end()) - a.begin());
 }
 
+void homogeneousTransform(Particle p, vector<LandmarkObs> obs, vector<LandmarkObs>& obs_map){
+  /**
+   * Transform observations from vehicle coordinates into maps coordinates for a particle p
+   * Inputs : particule p, observations vector obs (vehicle coordinates), obs_map (copy of obs)
+   * Output : observations in map coordinates relative to particule p : obs_map
+   */
+  for(int o=0; o<obs.size(); ++o){
+      // use homogeneous equations, using x/y from the particule
+      // x,y coordinates of the particule + theta heading of the particule
+      // How to calculate theta ???? This is the theta from the particule ...
+      // transform to map x coordinate
+      obs_map[o].x = p.x + (cos(p.theta) * obs[o].x) - (sin(p.theta) * obs[o].y);
+      // transform to map y coordinate
+      obs_map[o].y = p.y + (sin(p.theta) * obs[o].x) + (cos(p.theta) * obs[o].y); 
+    }
+}
+
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
                                    const vector<LandmarkObs> &observations, 
                                    const Map &map_landmarks) {
@@ -150,33 +167,39 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */
   // transform to map x coordinate of observations
+  // but only need to do it one time, with one particule
   
+  for(int i=0; i<num_particles; ++i){  // For each particle in the particle filter
+    // need to transform each observation vehicle coordinates into map coordinates
+    double xp(particles[i].x), yp(particules[i].y), thetap(particules[i].theta);
+    // vector<int> vect2(vect1.begin(), vect1.end()); 
+    vector<LandmarkObs> obs_m(observations.begin(), observations.end()); 
     
-  for(int i=0; i<observations.size(); ++i){
-  	// use homogeneous equations, using x/y from the particule
-    // x,y coordinates of the particule + theta heading of the particule
-    // How to calculate theta ???? This is the theta from the particule ...
-    double x_obs(observations[i].x), y_obs(observations[i].y);    
-    // transform to map x coordinate
-    double x_map = x + (cos(theta) * x_obs) - (sin(theta) * y_obs);
-    // transform to map y coordinate
-    double y_map = y + (sin(theta) * x_obs) + (cos(theta) * y_obs);
-    // update back observations[i] x and y if used after ?
-    // observations[i].x = x_map;
-    // observations[i].y = y_map;
+    homogeneousTransform(particles[i], observations, obs_m); 
+    // Now we have observations in map coordinates relative to particle p, in obs_m vector
     
-    // now we have the x_map,y_map of the observation, we can look for 
-    // nearest landmark of this observation (x_map,y_map) and chose
-    // the nearest landmark
-  
-  	WOULD NEED THE OBSERVATIONS IN MAP COORDINATES AS WELL HERE !!!!
-  	// but in fact I should better use ParticleFilter::dataAssociation() to do this job ...
-    // ParticleFilter::dataAssociation(vector<LandmarkObs> predicted, 
-    //                                 vector<LandmarkObs>& observations)
-    dataAssociation(const Map &map_landmarks, 
-                                   ONLY 1 OBSERVATION ...)
+    for(int o=0; o<obs_m.size(); ++o){
+      // use homogeneous equations, using x/y from the particule
+      // x,y coordinates of the particule + theta heading of the particule
+      // How to calculate theta ???? This is the theta from the particule ...
+      double x_obs_v(observations[o].x), y_obs_v(observations[o].y);    
+      // transform to map x coordinate
+      obs_m.x = xp + (cos(thetap) * x_obs_v) - (sin(thetap) * y_obs_v);
+      // transform to map y coordinate
+      obs_m.y = yp + (sin(thetap) * x_obs_v) + (cos(thetap) * y_obs_v);
+      
+      // now we have the x_map,y_map of the observation, we can look for 
+      // nearest landmark of this observation (x_map,y_map) and chose
+      // the nearest landmark
+    }
 
-  }
+      WOULD NEED THE OBSERVATIONS IN MAP COORDINATES AS WELL HERE !!!!
+      // but in fact I should better use ParticleFilter::dataAssociation() to do this job ...
+      // ParticleFilter::dataAssociation(vector<LandmarkObs> predicted, 
+      //                                 vector<LandmarkObs>& observations)
+      dataAssociation(const Map &map_landmarks, 
+                                     ONLY 1 OBSERVATION ...)
+
   
     
   // From here we associated a nearest landmark to each observations 
