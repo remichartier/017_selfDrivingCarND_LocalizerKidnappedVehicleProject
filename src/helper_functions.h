@@ -10,6 +10,7 @@
  * History
  * v00 : initial version from Udacity
  * v01 : add includes + applyGaussianNoise
+ * v02 : add min_index()
  */
 
 #ifndef HELPER_FUNCTIONS_H_
@@ -284,4 +285,12 @@ inline void applyGaussianNoise(double& x, double& y, double& theta, double std[]
   y = dist_y(gen);
   theta = dist_theta(gen);
 }
+
+int min_index(std::vector<double> a){
+  /**
+   * return vector index of minimum value in the vector
+  */
+	return(std::min_element(a.begin(),a.end()) - a.begin());
+}
+
 #endif  // HELPER_FUNCTIONS_H_

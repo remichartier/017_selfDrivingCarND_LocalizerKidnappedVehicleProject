@@ -6,6 +6,12 @@
  * Author: Tiffany Huang
  */
 
+/**
+ * History
+ * v00 : original file
+ * v01 : changed prototype of dataAssociation()
+ */
+
 #ifndef PARTICLE_FILTER_H_
 #define PARTICLE_FILTER_H_
 
@@ -63,7 +69,7 @@ class ParticleFilter {
    * @param predicted Vector of predicted landmark observations
    * @param observations Vector of landmark observations
    */
-  void dataAssociation(std::vector<LandmarkObs> predicted, 
+  void dataAssociation(Map map_landmarks, 
                        std::vector<LandmarkObs>& observations);
   
   /**
