@@ -147,6 +147,47 @@ void homogeneousTransform(Particle p, vector<LandmarkObs> obs, vector<LandmarkOb
     }
 }
 
+void multivariate_gaussian_probability(std::vector<double>& prob,
+	std::vector<Coord> obs, Coord std_dev, 
+	std::vector<int> nearest_i, std::vector<Coord> landmarks){
+	int i(0);
+	double x(0.0),y(0.0),mux(0.0),muy(0.0),a(1.0),b(0.0),c(0.0),exponent(0.0);
+	double stdx(std_dev.x), stdy(std_dev.y);
+
+	if((stdx == 0) || (stdy == 0)){ return; }
+
+	for(int o=0;o<obs.size();++o){
+		// index of nearest landmark
+		i = nearest_i[o];
+		// coordinates observation
+		x = obs[o].x; y = obs[o].y;
+		// coordinates nearest landmark
+		mux = landmarks[i].x; muy = landmarks[i].y;
+		// computation probability
+		a = 1 / (2*M_PI*std_dev.x*std_dev.y);
+		b = (x - mux) / stdx;
+		c = (y - muy) / stdy;
+		prob[o] = a * std::exp(-(b*b + c*c)/2);
+	}
+}
+
+void print_multivariate_gaussian_probability(std::vector<double> prob){
+	
+	std::cout << "CALCULATION OBSERVATIONS Multivariate-Gaussian ";
+	std::cout << "probability density" << std::endl;
+	for(int o=0; o < prob.size(); ++o){
+		std::cout << "obs[" << o << "] : Multivariate-Gaussian probability ";
+		std::cout << "density : " << prob[o] << std::endl;
+	}
+}
+
+void compute_particle_weight(double& w, std::vector<double> prob){
+	
+	for(int o=0; o < prob.size(); ++o){
+		w *= prob[o];
+	}
+}
+
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
                                    const vector<LandmarkObs> &observations, 
                                    const Map &map_landmarks) {
@@ -184,6 +225,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     // now we have the closest landmarks to each observation on obs_m[i].id
 
     // Need now to calculate particle weight ...
+    
+    cf answers on sensor_data, build prediction vector with it, integrate this
+      before switching to weight calculation.
 
   }  
 }
