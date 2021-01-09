@@ -39,7 +39,7 @@
 using std::string;
 using std::vector;
 
-#define DEBUG true
+#define DEBUG01 false
 
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
@@ -254,13 +254,13 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     multivariate_gaussian_probability(prob, obs_m, std_landmark,
                                       predicted);
 	
-    if(DEBUG) printVectorDouble(prob, "prob"); // for debug
+    if(DEBUG01) printVectorDouble(prob, "prob"); // for debug
     
     
     // Need now to calculate particle weight ...
     // compute_particle_weight(this->particles[i].weight, prob);
     
-    if(DEBUG){
+    if(DEBUG01){
       if(particles[i].weight == 0){
         std::cout << "particles[i].weight = 0" << std::endl;
       }
@@ -284,7 +284,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   // at this point, all the particule weights have been calculated.
   // We need to normalize them to use them as probabilities in resampling step
   // so that weights are between [0,1]
-  if(DEBUG) std::cout << "weight_sum = " << weight_sum << std::endl;
+  if(DEBUG01) std::cout << "weight_sum = " << weight_sum << std::endl;
   
   bool status = normalize_weights(weight_sum);
   if(!status){
