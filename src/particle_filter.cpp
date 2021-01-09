@@ -183,18 +183,18 @@ void filterOutOfSensorRangeLandmarks(const Map &map_landmarks,
 /**
  * normalize particle weights
  */
-/*
+
 void ParticleFilter::normalize_weights(double sum){
   
   if(sum==0){
   	std::cout << "ParticleFilter::normalize_weights() : ERROR division by 0" << std::endl;
     return;
   }
-  for(unsigned int i=0; i<this->num_particles; ++i){
-  	this->particles[i] /= sum;
+  for(unsigned int i=0; i<(unsigned int)num_particles; ++i){
+  	particles[i].weight /= sum;
   }
 }
-*/
+
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
                                    const vector<LandmarkObs> &observations, 
@@ -215,8 +215,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   // transform to map x coordinate of observations
   // but only need to do it one time, with one particule
   
-  // double weight_sum(0.0); // sum of weight to later normalize them before resampling
-  // not needed if resampling uses discrete_distribution
+  double weight_sum(0.0); // sum of weight to later normalize them before resampling
   
   for(unsigned int i=0; i<(unsigned int)num_particles; ++i){  // For each particle in the particle filter
     // need to transform each observation vehicle coordinates into map coordinates
@@ -251,12 +250,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     weights[i] = this->particles[i].weight;
     
     // to normalize weights at the end
-    // weight_sum += this->particles[i].weight; // not needed if resampling uses discrete_distribution
+    weight_sum += this->particles[i].weight; 
   }
   // at this point, all the particule weights have been calculated.
   // We need to normalize them to use them as probabilities in resampling step
   // so that weights are between [0,1]
-  // normalize_weights(weight_sum); // not needed if resampling uses discrete_distribution
+  normalize_weights(weight_sum); 
 }
 
 void ParticleFilter::resample() {
