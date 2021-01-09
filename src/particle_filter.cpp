@@ -16,6 +16,7 @@
  * v04 : completed updateWeights(), added filterOutOfSensorRangeLandmarks()
  * v05 : Add normalize_weights()
  * v06 : Add resample()
+ * v07 : add Division by 0 Error management and debug prints
  */
 
 #include "particle_filter.h"
@@ -30,11 +31,15 @@
 #include <vector>
 
 #include <stdlib.h> // for exit() function
+#include <limits> // for std::numeric_limits<double>::min()
+
 
 #include "helper_functions.h"
 
 using std::string;
 using std::vector;
+
+#define DEBUG true
 
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
@@ -186,15 +191,16 @@ void filterOutOfSensorRangeLandmarks(const Map &map_landmarks,
  * normalize particle weights
  */
 
-void ParticleFilter::normalize_weights(double sum){
+bool ParticleFilter::normalize_weights(double sum){
   
   if(sum==0){
   	std::cout << "ParticleFilter::normalize_weights() : ERROR division by 0" << std::endl;
-    return;
+    return false;
   }
   for(unsigned int i=0; i<(unsigned int)num_particles; ++i){
   	particles[i].weight /= sum;
   }
+  return true;
 }
 
 
@@ -248,9 +254,17 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     multivariate_gaussian_probability(prob, obs_m, std_landmark,
                                       predicted);
 	
+    if(DEBUG) printVectorDouble(prob, "prob"); // for debug
+    
+    
     // Need now to calculate particle weight ...
     // compute_particle_weight(this->particles[i].weight, prob);
-    compute_particle_weight(particles[i].weight, prob);
+    
+    if(DEBUG){
+      if(particles[i].weight == 0){
+        std::cout << "particles[i].weight = 0" << std::endl;
+      }
+    }
     
     // Also update the particle overall weight vector.
     // weights[i] = this->particles[i].weight;
@@ -259,12 +273,27 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     // to normalize weights at the end
     // weight_sum += this->particles[i].weight; 
     weight_sum += particles[i].weight; 
-    // std::cout << "weight_sum = " << weight_sum << std::endl;
+    
+    // to work around in case weight_sum becomes 0.0 due to probs much too low : 
+    if(weight_sum == 0){
+         weight_sum = std::fabs(std::numeric_limits<double>::min());
+    }
+
+    
   }
   // at this point, all the particule weights have been calculated.
   // We need to normalize them to use them as probabilities in resampling step
   // so that weights are between [0,1]
-  normalize_weights(weight_sum); 
+  if(DEBUG) std::cout << "weight_sum = " << weight_sum << std::endl;
+  
+  bool status = normalize_weights(weight_sum);
+  if(!status){
+    // need to print debug info to show why divide by 0
+    // print prob vector
+    // printVectorDouble(prob, "prob");
+    std::exit(EXIT_FAILURE);
+  }
+
 }
 
 void ParticleFilter::resample() {

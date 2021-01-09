@@ -12,6 +12,9 @@
  * v01 : add includes + applyGaussianNoise
  * v02 : add min_index()
  * v03 : add compute_particle_weight(), multivariate_gaussian_probability()
+ * v04 : add Division by 0 Error management and debug prints + 
+ * 			Correction particle Gaussian prob calculation, start with weight=1 
+ 		add printVectorDouble() function for debug
  */
 
 #ifndef HELPER_FUNCTIONS_H_
@@ -307,7 +310,7 @@ inline int min_index(std::vector<double> a){
  * Output : w weight = product of all probs
  */ 
 inline void compute_particle_weight(double& w, std::vector<double> prob){
-   
+  w = 1; 
   for(unsigned int o=0; o < prob.size(); ++o){
     w *= prob[o];
   }
@@ -333,7 +336,7 @@ inline void multivariate_gaussian_probability(std::vector<double>& prob,
 
   if((stdx == 0) || (stdy == 0)){ 
     std::cout << "multivariate_gaussian_probability() ERROR : Division by 0" << std::endl ;
-    return; 
+    std::exit(EXIT_FAILURE);
   }
 
   for(unsigned int o=0; o < obs_m.size() ;++o){
@@ -349,6 +352,19 @@ inline void multivariate_gaussian_probability(std::vector<double>& prob,
     c = (y - muy) / stdy;
     prob[o] = a * std::exp(-(b*b + c*c)/2);
   }
+}
+
+/**
+ * print() mutliplies to together all the prob 
+ * @param vector of doubles  
+ * @param v_name name of the vector to print
+ */ 
+inline void printVectorDouble(std::vector<double> v, std::string v_name){
+  std::cout << v_name << "[] = ";
+  for(unsigned int i=0; i < v.size(); ++i){
+    std::cout << v[i] << ",";
+  }
+  std::cout << std::endl;
 }
 
 #endif  // HELPER_FUNCTIONS_H_

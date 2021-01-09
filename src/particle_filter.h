@@ -11,6 +11,7 @@
  * v00 : original file
  * v01 : changed prototype of dataAssociation()
  * v02 : changed back prototype of dataAssociation() to original
+ * v03 :bool normalize_weights() for divide by 0 error management
  */
 
 #ifndef PARTICLE_FILTER_H_
@@ -75,7 +76,7 @@ class ParticleFilter {
   /**
    * normalize particle weights
    */
-  void normalize_weights(double sum);
+  bool normalize_weights(double sum);
   
   /**
    * updateWeights Updates the weights for each particle based on the likelihood
@@ -85,6 +86,7 @@ class ParticleFilter {
    *   [Landmark measurement uncertainty [x [m], y [m]]]
    * @param observations Vector of landmark observations
    * @param map Map class containing map landmarks
+   * return true if no error, False if error raised (like division by 0)
    */
   void updateWeights(double sensor_range, double std_landmark[], 
                      const std::vector<LandmarkObs> &observations,
