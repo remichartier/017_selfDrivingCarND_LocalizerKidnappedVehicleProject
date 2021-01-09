@@ -29,6 +29,8 @@
 #include <string>
 #include <vector>
 
+#include <stdlib.h> // for exit() function
+
 #include "helper_functions.h"
 
 using std::string;
@@ -92,7 +94,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
   // std_pos[] : velocity and yaw rate measurement velocities.
   if(yaw_rate == 0) {
     std::cout << "ParticleFilter::prediction() ERROR : yaw_rate=0 --> dividing by 0" << std::endl;
-    return;
+    std::exit(EXIT_FAILURE);
   }
   // calculate new particle positions
   for (int i = 0; i < num_particles; ++i) {
@@ -223,13 +225,16 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     // vector<int> vect2(vect1.begin(), vect1.end()); 
     vector<LandmarkObs> obs_m(observations.begin(), observations.end()); 
     
-    homogeneousTransform(this->particles[i], observations, obs_m); 
+    // homogeneousTransform(this->particles[i], observations, obs_m); 
+	homogeneousTransform(particles[i], observations, obs_m); 
     // Now we have observations in map coordinates relative to particle p, in obs_m vector
     
     // Filter out landmarks out of sensor_range vs particle position
     vector<LandmarkObs> predicted;
+    // filterOutOfSensorRangeLandmarks(map_landmarks, predicted, sensor_range,
+    //                                this->particles[i]);
     filterOutOfSensorRangeLandmarks(map_landmarks, predicted, sensor_range,
-                                    this->particles[i]);
+                                    particles[i]);
     
     // We can then look for nearest landmark of this observations
     // and chose the nearest landmark for each observation, and this
@@ -244,13 +249,17 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
                                       predicted);
 	
     // Need now to calculate particle weight ...
-    compute_particle_weight(this->particles[i].weight, prob);
+    // compute_particle_weight(this->particles[i].weight, prob);
+    compute_particle_weight(particles[i].weight, prob);
     
     // Also update the particle overall weight vector.
-    weights[i] = this->particles[i].weight;
+    // weights[i] = this->particles[i].weight;
+    weights[i] = particles[i].weight;
     
     // to normalize weights at the end
-    weight_sum += this->particles[i].weight; 
+    // weight_sum += this->particles[i].weight; 
+    weight_sum += particles[i].weight; 
+    // std::cout << "weight_sum = " << weight_sum << std::endl;
   }
   // at this point, all the particule weights have been calculated.
   // We need to normalize them to use them as probabilities in resampling step
@@ -268,7 +277,8 @@ void ParticleFilter::resample() {
   
   // vector<int> vect2(vect1.begin(), vect1.end()); 
   // copy particules in new vector as will draw and replace particles vector
-  vector<Particle> old_particles(this->particles.begin(),this->particles.end());
+  //vector<Particle> old_particles(this->particles.begin(),this->particles.end());
+  vector<Particle> old_particles(particles.begin(),particles.end());
   
   std::default_random_engine generator;
   std::discrete_distribution<int> distribution (weights.begin(),weights.end());
