@@ -11,7 +11,7 @@
  * v00 : initial version from Udacity
  * v01 : add includes + applyGaussianNoise
  * v02 : add min_index()
- * v03 : add compute_particle_weight(), multivariate_gaussian_probability
+ * v03 : add compute_particle_weight(), multivariate_gaussian_probability()
  */
 
 #ifndef HELPER_FUNCTIONS_H_
