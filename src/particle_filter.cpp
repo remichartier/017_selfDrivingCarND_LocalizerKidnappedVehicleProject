@@ -16,7 +16,8 @@
  * v04 : completed updateWeights(), added filterOutOfSensorRangeLandmarks()
  * v05 : Add normalize_weights()
  * v06 : Add resample()
- * v07 : add Division by 0 Error management and debug prints
+ * v07 : add Division by 0 Error management and debug prints 
+ *		+ correction on prediction Theta calculation
  */
 
 #include "particle_filter.h"
@@ -39,7 +40,9 @@
 using std::string;
 using std::vector;
 
-#define DEBUG01 false
+#define DEBUG_01 false
+#define DEBUG_02 false
+
 
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
@@ -86,7 +89,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
   is_initialized = true;
 }
 
-void ParticleFilter::prediction(double delta_t, double std_pos[], 
+void ParticleFilter::prediction(double deltat, double std_pos[], 
                                 double velocity, double yaw_rate) {
   /**
    * TODO: Add measurements to each particle and add random Gaussian noise.
@@ -103,12 +106,12 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
   }
   // calculate new particle positions
   for (int i = 0; i < num_particles; ++i) {
-    double d = yaw_rate * delta_t;
+    double d = yaw_rate * deltat;
     double a = velocity/yaw_rate;
     double b = particles[i].theta + d;
     particles[i].x += a * (sin(b) - sin(particles[i].theta));
     particles[i].y += a * (cos(particles[i].theta) - cos(b));
-    particles[i].theta += b;
+    particles[i].theta = b;
     // Apply Gaussian Noise Normal Distribution to those new predicted positions.
     applyGaussianNoise(particles[i].x, particles[i].y, particles[i].theta, std_pos);
   }
@@ -254,13 +257,13 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     multivariate_gaussian_probability(prob, obs_m, std_landmark,
                                       predicted);
 	
-    if(DEBUG01) printVectorDouble(prob, "prob"); // for debug
+    if(DEBUG_01) printVectorDouble(prob, "prob"); // for debug
     
     
     // Need now to calculate particle weight ...
-    // compute_particle_weight(this->particles[i].weight, prob);
+    compute_particle_weight(this->particles[i].weight, prob);
     
-    if(DEBUG01){
+    if(DEBUG_01){
       if(particles[i].weight == 0){
         std::cout << "particles[i].weight = 0" << std::endl;
       }
@@ -284,7 +287,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   // at this point, all the particule weights have been calculated.
   // We need to normalize them to use them as probabilities in resampling step
   // so that weights are between [0,1]
-  if(DEBUG01) std::cout << "weight_sum = " << weight_sum << std::endl;
+  if(DEBUG_01) std::cout << "weight_sum = " << weight_sum << std::endl;
   
   bool status = normalize_weights(weight_sum);
   if(!status){
@@ -314,8 +317,11 @@ void ParticleFilter::resample() {
   
   for(unsigned int i=0; i<(unsigned int)num_particles; ++i){
   	int number = distribution(generator);
-    this->particles[i] = old_particles[number];
+    //this->particles[i] = old_particles[number];
+    particles[i] = old_particles[number];
+    if(DEBUG_02) particles.weights[i] = particles[i].weight;
   }
+  if(DEBUG_02) printVectorDouble(particles.weights,"after resample : weights[]");
   
   // now this->particles[i] contain new draw of num_particles from previous set
   // picked randomly according to their previous weights
