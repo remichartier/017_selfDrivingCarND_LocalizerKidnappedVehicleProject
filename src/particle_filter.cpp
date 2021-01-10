@@ -42,7 +42,7 @@ using std::vector;
 
 #define DEBUG_01 false
 #define DEBUG_02 false
-
+#define DEBUG_03 true
 
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
@@ -78,13 +78,13 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
     p.y = y;
     p.theta = theta;
     applyGaussianNoise(p.x, p.y, p.theta, std);
-    p.weight = 1;
+    p.weight = 1.0/num_particles;
     particles.push_back(p);
     
     // Also size up the Vector of weights of all particles
-    weights.push_back(0.0); // may have to use this-> if not recognized ...
+    weights.push_back(p.weight); // may have to use this-> if not recognized ...
   }
-  
+  if(DEBUG_03) printVectorDouble(weights,"init weights[] : ");
   // set initialized flag
   is_initialized = true;
 }
@@ -227,8 +227,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   // but only need to do it one time, with one particule
   
   double weight_sum(0.0); // sum of weight to later normalize them before resampling
-  
+
   for(unsigned int i=0; i<(unsigned int)num_particles; ++i){  // For each particle in the particle filter
+    
+
     // need to transform each observation vehicle coordinates into map coordinates
     
     // vector<int> vect2(vect1.begin(), vect1.end()); 
@@ -257,11 +259,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     multivariate_gaussian_probability(prob, obs_m, std_landmark,
                                       predicted);
 	
-    if(DEBUG_01) printVectorDouble(prob, "prob"); // for debug
+    if(DEBUG_01|DEBUG_03) printVectorDouble(prob, "prob"); // for debug
     
     
     // Need now to calculate particle weight ...
-    compute_particle_weight(this->particles[i].weight, prob);
+    //compute_particle_weight(this->particles[i].weight, prob);
+    compute_particle_weight(particles[i].weight, prob);
     
     if(DEBUG_01){
       if(particles[i].weight == 0){
@@ -288,6 +291,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   // We need to normalize them to use them as probabilities in resampling step
   // so that weights are between [0,1]
   if(DEBUG_01) std::cout << "weight_sum = " << weight_sum << std::endl;
+  
+  if(DEBUG_03) printVectorDouble(weights,"weights[] before normalize : ");
   
   bool status = normalize_weights(weight_sum);
   if(!status){
@@ -319,9 +324,9 @@ void ParticleFilter::resample() {
   	int number = distribution(generator);
     //this->particles[i] = old_particles[number];
     particles[i] = old_particles[number];
-    if(DEBUG_02) particles.weights[i] = particles[i].weight;
+    if(DEBUG_02) weights[i] = particles[i].weight;
   }
-  if(DEBUG_02) printVectorDouble(particles.weights,"after resample : weights[]");
+  if(DEBUG_02) printVectorDouble(weights,"after resample weights[] : ");
   
   // now this->particles[i] contain new draw of num_particles from previous set
   // picked randomly according to their previous weights
